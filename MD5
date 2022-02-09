@@ -1,6 +1,6 @@
-e8ea139962a29d3703231e6f8015d868 *DESCRIPTION
+fe099714d295f5c88a739bc8c2b50fdd *DESCRIPTION
 8981e5e31608d92b474a1fdcddf57643 *NAMESPACE
-b214015a1774d941bb09e2a90f5c12f7 *NEWS.md
+07ab9402fc70d9eb34b7bad3adbf049a *NEWS.md
 2f4b2aa1704341b5d767914e2a3ed82b *R/RcppExports.R
 23dcf065b6ccc4fdc6dd9bd1836363d3 *R/data-class.R
 796c5a3059aef33170f8f2e88797733f *R/evalBlm.R
@@ -18,7 +18,7 @@ c840827e210a79c53513335455fe6248 *R/internal.R
 f3dd01a0c733c2bb8d3c6b0dd4dd03e2 *R/optimizationProblem-class.R
 e5b1a0bdcf092ac1a5b2cbbf5063c4bc *R/package.R
 4a3d212a1f6431540559cb19bbe43689 *R/portfolio-class.R
-6c276d92789db25d06f46b85418230a9 *R/presolve.R
+dc014ec67afad4a3f7e17452a197898e *R/presolve.R
 1e86d00e486a4f1656eee841341ec476 *R/print.R
 2b9212e8d5b873146998b578e63491bd *R/problem.R
 2e3ccc9c789ee734572f39ee6d994b50 *R/problem_modifier.R
@@ -29,7 +29,7 @@ af99c7d8bcf0a9acad3f967b38fb9f6d *R/simData.R
 7b3a1f8214e1fce8d8e935d7820622e5 *R/utils-pipe.R
 09c8ac0f8a0c4365a81fadd6f153d3c0 *R/writeOutputs.R
 dd1d850eb6682d55cbb0c53235e8bb21 *R/zzz.R
-da136ad05d29ea50df6efb9d53bd3e33 *README.md
+a0d2ef8dc3980daf68c620dc8551752f *README.md
 1586e8f0025756d85abdd7d4c7e137a3 *build/vignette.rds
 5a1943d36db68a6430f0cdf4ae5b94d6 *data/sim_boundary_data.rda
 bc22d831f6dc5d7a45dcb6205aea3992 *data/sim_dist_features_data.rda
@@ -104,7 +104,7 @@ b6534d49c4a32ec038ccb25de1cec585 *man/solution-class.Rd
 b5084c425b359070161bb84cdae4c1ac *src/rcpp_constraint_benefit.cpp
 5cbb53991177cc80eb448ed6c25ec505 *src/rcpp_constraint_budget.cpp
 688a5b23ae695312765607bb006303ea *src/rcpp_constraint_lock.cpp
-4bdb93a469d69f9a65e847ecabe6ce4f *src/rcpp_constraint_target.cpp
+36ed3c8ff9a78f55ba91ca4b90c36c33 *src/rcpp_constraint_target.cpp
 ef8a62520dc9a679a30f92f97ee7c937 *src/rcpp_objective_max_coverage.cpp
 ded50246404561675dd15c6301bb894e *src/rcpp_objective_min_set.cpp
 24427f13579f8678bc908f410c389ce8 *src/rcpp_stats_benefit.cpp

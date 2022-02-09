@@ -1,3 +1,7 @@
+# prioriactions 0.4
+
+- Fixed `problem()` function. Now it works with recovery objectives and data non-filtered, i.e. with non-threatened features.
+
 # prioriactions 0.3.3
 
 - Release candidate for CRAN.
