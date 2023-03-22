@@ -1,6 +1,6 @@
 Package: prioriactions
 Type: Package
-Version: 0.4.1
+Version: 0.4.2
 Title: Multi-Action Conservation Planning
 Description: This uses a mixed integer mathematical programming (MIP)
         approach for building and solving multi-action planning problems, 
@@ -31,17 +31,16 @@ Authors@R: c(person(c('Jose'), 'Salgado-Rojas',
 Depends: R (>= 3.5.0)
 Imports: assertthat (>= 0.2.0), Matrix, proto, magrittr, tidyr, dplyr,
         Rcpp, rlang
-Suggests: knitr, gurobi (>= 9.0), Rcplex (>= 0.3.5), roxygen2,
-        Rsymphony (>= 0.1-31), rmarkdown, testthat (>= 3.0.0), raster,
-        tmap, sp, viridis, markdown, data.table, purrr, readr, slam,
-        tibble, methods
+Suggests: knitr, gurobi (>= 9.0), Rcplex, roxygen2, Rsymphony (>=
+        0.1-31), rmarkdown, testthat (>= 3.0.0), raster, tmap, sp,
+        viridis, markdown, data.table, purrr, readr, slam, tibble,
+        methods
 LinkingTo: Rcpp, RcppArmadillo (>= 0.10.1.0.0), BH
 Encoding: UTF-8
 LazyData: true
-SystemRequirements: C++11
 License: GPL (>= 2)
 Language: en-US
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 URL: https://prioriactions.github.io/prioriactions/,
         https://github.com/prioriactions/prioriactions
 BugReports: https://github.com/prioriactions/prioriactions/issues
@@ -56,7 +55,7 @@ Collate: 'RcppExports.R' 'internal.R' 'data-class.R' 'writeOutputs.R'
         'solution-class.R' 'solve.R' 'utils-pipe.R' 'zzz.R'
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2022-08-16 10:52:02 UTC; josesalgrdell
+Packaged: 2023-03-22 17:26:00 UTC; josesalgr
 Author: Jose Salgado-Rojas [aut, cre],
   Irlanda Ceballos-Fuentealba [aut],
   Virgilio Hermoso [aut],
@@ -64,4 +63,4 @@ Author: Jose Salgado-Rojas [aut, cre],
   Jordi Garcia-Gonzalo [aut]
 Maintainer: Jose Salgado-Rojas <jose.salgroj@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-08-16 13:30:02 UTC
+Date/Publication: 2023-03-22 23:20:02 UTC

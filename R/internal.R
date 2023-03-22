@@ -275,6 +275,7 @@ available_to_solve <- function(package = ""){
     params <- list()
     params$TimeLimit <- 0.01
     params$LogToConsole <- 0
+    model$sense <- replace(model$sense, model$sense == "==", "=")
 
     sol <- invisible(try(gurobi::gurobi(model, params), silent = TRUE))
   }
@@ -317,8 +318,6 @@ available_to_solve <- function(package = ""){
                silent = TRUE))
 
   }
-
-
   if(inherits(sol, "try-error")){
     return(FALSE)
   }
