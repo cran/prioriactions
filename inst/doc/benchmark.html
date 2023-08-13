@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Solver benchmarks</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Solver benchmarks</h1>
+
+
+
+<p>The <code>prioriactions R</code> package offers diverse optimization
+solvers, both academic and non-academic, to tackle mathematical models.
+Notably, it supports cutting-edge commercial optimization software such
+as <code>gurobi</code> and <code>CPLEX</code>, as well as non-academic
+alternatives like <code>CBC</code> and <code>symphony</code>. In the
+realm of supported solvers, <code>CPLEX</code> and <code>gurobi</code>
+generally stand out for their superior speed. It’s worth noting that
+while these are commercial tools, they do offer special academic
+licenses at no charge.</p>
+<p>Depending on the intricacy of the management planning problem at
+hand, solvers based on open-source software may only marginally trail
+behind their commercial counterparts in terms of the speed and quality
+of the solutions. In the following analysis, we will explore and
+evaluate the performance of these different software options that
+<code>prioriactions</code> provides.</p>
+<div id="experimental-settings" class="section level2">
+<h2>Experimental settings</h2>
+<p>This analysis encompassed the generation of prioritizations through
+all solvers available in <code>prioriactions</code>, accompanied by
+measuring the time and quality of the solutions (<em>gap</em>) each
+solver required to complete the process. We explored a set of management
+planning problems characterized by distinct models (referred to as
+models <strong>(A)</strong>, <strong>(B)</strong>,
+<strong>(C)</strong>). Among the models considered, <strong>(C)</strong>
+stands out for being the largest model due to the incorporation of
+spatial connectivity requirements between actions (<span class="math inline">\(blm_k\)</span> = 0.8). In contrast, model
+<strong>(B)</strong> entails connectivity solely between management
+units (<span class="math inline">\(blm\)</span> = 0.8), while model
+<strong>(A)</strong> lacks any form of spatial requirement.
+Consequently, solving model <strong>(A)</strong> should be comparatively
+straightforward, given its absence of spatial constraints (further
+elaborated in Table below with model sizes). Also, we introduce
+variations in the target achievement levels (10%, 20%, 30%, and 40%
+respectively), thereby altering the inherent attributes of the models.
+All benchmark scenarios encompassed the Mitchell River case study
+presented, i.e. 2,316 planning units, 45 features, and 4 threats.</p>
+<table>
+<caption>Model size (Variables, Constraints, Nonzeros elements in the
+constraint matrix) for different modelling scenarios.</caption>
+<thead>
+<tr class="header">
+<th align="left">Modelling_Setting</th>
+<th align="right">Variables</th>
+<th align="right">Constraints</th>
+<th align="right">Nonzeros</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(A) <span class="math inline">\(blm = 0, blm_k =
+0\)</span></td>
+<td align="right">43180</td>
+<td align="right">37371</td>
+<td align="right">136566</td>
+</tr>
+<tr class="even">
+<td align="left">(B) <span class="math inline">\(blm = 0.8, blm_k =
+0\)</span></td>
+<td align="right">61428</td>
+<td align="right">92115</td>
+<td align="right">264302</td>
+</tr>
+<tr class="odd">
+<td align="left">(C) <span class="math inline">\(blm = 0, blm_k =
+0.8\)</span></td>
+<td align="right">89150</td>
+<td align="right">175281</td>
+<td align="right">458356</td>
+</tr>
+</tbody>
+</table>
+<p>Our experimental setup was conducted on a machine powered by an Intel
+Core i5-1240P 3.30GHz processor, paired with 16 GB of RAM
+LPDDR5-6400MHz, and running Ubuntu 22.04 LTS. Firstly, the
+<code>time_limit</code> parameter, which designates the maximum period
+the solver dedicates to pursuing an optimal solution, was set to 10,800
+seconds, equivalent to a span of 3 hours. It is noteworthy that no
+constraint was placed on the <em>gap</em> to achieve
+(<code>gap_limit</code> = 0}), underscoring the aim of attaining the
+utmost optimal solution within the aforementioned three-hour timeframe.
+Secondly, the number of cores utilized was set to ten. Futhermore, we
+employed the most recent versions of all available optimizers within the
+<code>prioriactions</code> framework. Specifically, for
+<code>BM CPLEX</code>, we utilized version 22.1.1.0 in conjunction with
+<code>Rcplex</code> version 0.3.7. <code>Gurobi</code> was employed at
+version 10.0.0, while <code>Rcbc</code> was utilized at its version
+0.1.0.9001. Additionally, for <code>symphony</code>, we leveraged
+<code>Rsymphony</code> with version 0.1-33 to ensure a comprehensive and
+up-to-date foundation for our analyses.</p>
+<p>To derive these outcomes, we solely adjusted in the third step,
+involving the alteration of the solver’s name within the
+<code>solve()</code> function embedded in the <code>prioriactions</code>
+package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># solve the model</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>solution <span class="ot">&lt;-</span> <span class="fu">solve</span>(model, <span class="at">solver =</span> <span class="st">&quot;gurobi&quot;</span>, <span class="at">gap_limit =</span> <span class="dv">0</span>, <span class="at">time_limit =</span> <span class="dv">10800</span>, </span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>                  <span class="at">solution_limit =</span> <span class="cn">FALSE</span>, <span class="at">cores =</span> <span class="dv">10</span>, <span class="at">output_file =</span> <span class="cn">TRUE</span>, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>In the subsequent segments, we will offer distinct log outputs
+corresponding to each of the experimental solvers operating within
+scenario <strong>(A)</strong>, where the recovery target is set at 10%.
+These log records will serve as illustrative examples, providing insight
+into the information presented throughout the optimization process.</p>
+<div id="gurobi" class="section level3">
+<h3><code>Gurobi</code></h3>
+<p>The logs follow a consistent structure, albeit with variations based
+on the information being presented and the manner of presentation. This
+structure can be succinctly summarized into four key sections:
+<strong>(i) optimizer settings</strong>; the initial part includes
+details about the settings and configurations of the optimizer (lines 1
+to 8). <strong>(ii) presolve</strong>; to fine-tune the model. This step
+involves searching for the bounds associated with the relaxed solution
+(infeasible), among other tasks (lines 15 to 31). <strong>(iii)
+solutions search</strong>; entails an active pursuit of the optimal
+solution (or one of the optimal solutions, if multiple exist, lines 33
+to 61). And, <strong>(iv) summary</strong>; summarises the entire
+optimization process, providing quality <em>gaps</em> and times, among
+other things (lines 63 to 69). In this particular instance, the optimal
+solution (with a <em>gap</em> of 0.00%) was successfully attained,
+yielding a value of 646, 10 seconds after the process started.</p>
+<pre><code>1  Gurobi 10.0.0 (linux64, R) logging started dom 06 ago 2023 19:49:56
+2 
+3  Set parameter Username
+4  Set parameter TimeLimit to value 10800
+5  Set parameter MIPGap to value 0
+6  Set parameter NodefileStart to value 0.5
+7  Set parameter LogFile to value &quot;modelA_10_gurobi_log.txt&quot;
+8  Set parameter Threads to value 10
+9  Academic license - for non-commercial use only - expires 2024-01-25
+10 Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (linux64)
+11
+12 CPU model: 12th Gen Intel(R) Core(TM) i5-1240P, instruction set [SSE2|AVX|AVX2]
+13 Thread count: 16 physical cores, 16 logical processors, using up to 10 threads
+14
+15 Optimize a model with 37371 rows, 43180 columns and 136566 nonzeros
+16 Model fingerprint: 0x96123de4
+17 Variable types: 34965 continuous, 8215 integer (8215 binary)
+18 Coefficient statistics:
+19   Matrix range     [3e-01, 4e+00]
+20   Objective range  [1e+00, 1e+00]
+21   Bounds range     [1e+00, 1e+00]
+22   RHS range        [5e-01, 2e+02]
+23 Found heuristic solution: objective 7947.0000000
+24 Found heuristic solution: objective 4978.0000000
+25 Presolve removed 35017 rows and 35259 columns
+26 Presolve time: 0.15s
+27 Presolved: 2354 rows, 7921 columns, 66284 nonzeros
+28 Variable types: 0 continuous, 7921 integer (7904 binary)
+29 Found heuristic solution: objective 817.0000000
+30 
+31 Root relaxation: objective 5.657750e+02, 3822 iterations, 0.05 seconds (0.26 work units)
+32 
+33     Nodes    |    Current Node    |     Objective Bounds      |     Work
+34  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+35 
+36      0     0  565.77500    0  279  817.00000  565.77500  30.7%     -    0s
+37 H    0     0                     699.0000000  565.77500  19.1%     -    0s
+38 H    0     0                     663.0000000  565.77500  14.7%     -    0s
+39 H    0     0                     651.0000000  565.77500  13.1%     -    0s
+40      0     0  573.58333    0  399  651.00000  573.58333  11.9%     -    0s
+41      0     0  575.33333    0  387  651.00000  575.33333  11.6%     -    0s
+42      0     0  577.54167    0  457  651.00000  577.54167  11.3%     -    1s
+43      0     0  580.01543    0  429  651.00000  580.01543  10.9%     -    1s
+44 H    0     0                     647.0000000  580.51543  10.3%     -    1s
+45      0     0  580.51543    0  434  647.00000  580.51543  10.3%     -    1s
+46      0     0  580.51543    0  431  647.00000  580.51543  10.3%     -    1s
+47      0     0  590.16667    0  350  647.00000  590.16667  8.78%     -    1s
+48      0     0  590.26667    0  334  647.00000  590.26667  8.77%     -    1s
+49      0     0  590.26667    0  327  647.00000  590.26667  8.77%     -    1s
+50      0     0  599.85185    0  258  647.00000  599.85185  7.29%     -    1s
+51      0     0  603.87037    0  236  647.00000  603.87037  6.67%     -    1s
+52      0     0  614.47222    0  161  647.00000  614.47222  5.03%     -    1s
+53      0     0  614.47222    0  158  647.00000  614.47222  5.03%     -    1s
+54      0     0  614.72222    0  130  647.00000  614.72222  4.99%     -    1s
+55      0     0  614.72222    0  146  647.00000  614.72222  4.99%     -    1s
+56      0     0  614.72222    0  194  647.00000  614.72222  4.99%     -    1s
+57      0     0  614.72222    0  160  647.00000  614.72222  4.99%     -    2s
+58 H    0     0                     646.0000000  614.72222  4.84%     -    2s
+59      0     2  614.72222    0  160  646.00000  614.72222  4.84%     -    2s
+60   1966  2055  630.50000  123   31  646.00000  626.33333  3.04%   9.7    5s
+61   7481  7363  630.50000  460   43  646.00000  626.33333  3.04%   7.2   10s
+62 
+63 Explored 8192 nodes (87667 simplex iterations) in 11.58 seconds (16.40 work units)
+64 Thread count was 10 (of 16 available processors)
+65 
+66 Solution count 8: 646 647 651 ... 7947
+67 
+68 Optimal solution found (tolerance 0.00e+00)
+69 Best objective 6.460000000000e+02, best bound 6.460000000000e+02, gap 0.0000%</code></pre>
+</div>
+<div id="cplex" class="section level3">
+<h3><code>CPLEX</code></h3>
+<p>Similar to <code>gurobi</code>, the <code>CPLEX</code> log adheres
+closely to the outlined structure. Precisely, lines 3 to 9 correspond to
+<strong>(i)</strong>, while lines 10 to 30 encompass
+<strong>(ii)</strong>. Furthermore, lines 31 to 49 represent
+<strong>(iii)</strong>, and lines 51 to 63 represent
+<strong>(iv)</strong>. In this context, the optimal solution was swiftly
+identified within a mere 2.08 seconds while maintaining the identical
+objective value of 646.</p>
+<pre><code>1  CPLEX environment opened
+2  Warning: The following options are not availables using cplex solver: output_file
+3  Rcplex: num variables=43180 num constraints=37371
+4  Version identifier: 22.1.1.0 | 2022-11-28 | 9160aff4d
+5  CPXPARAM_TimeLimit                               10800
+6  CPXPARAM_MIP_Tolerances_AbsMIPGap                0
+7  CPXPARAM_MIP_Tolerances_MIPGap                   0
+8  CPXPARAM_MIP_Pool_RelGap                         0
+9  CPXPARAM_MIP_Pool_AbsGap                         0
+10 Found incumbent of value 8215.000000 after 0.00 sec. (2.35 ticks)
+11 Tried aggregator 4 times.
+12 MIP Presolve eliminated 1402 rows and 300 columns.
+13 MIP Presolve added 2688 rows and 0 columns.
+14 MIP Presolve modified 354 coefficients.
+15 Aggregator did 34959 substitutions.
+16 Reduced MIP has 3698 rows, 7921 columns, and 67628 nonzeros.
+17 Reduced MIP has 7904 binaries, 17 generals, 0 SOSs, and 0 indicators.
+18 Presolve time = 0.39 sec. (1525.39 ticks)
+19 Probing time = 0.00 sec. (2.02 ticks)
+20 Tried aggregator 1 time.
+21 Detecting symmetries...
+22 Reduced MIP has 3698 rows, 7921 columns, and 67628 nonzeros.
+23 Reduced MIP has 7904 binaries, 17 generals, 0 SOSs, and 0 indicators.
+24 Presolve time = 0.03 sec. (51.39 ticks)
+25 Probing time = 0.01 sec. (2.02 ticks)
+26 Clique table members: 5591.
+27 MIP emphasis: balance optimality and feasibility.
+28 MIP search method: dynamic search.
+29 Parallel mode: deterministic, using up to 16 threads.
+30 Root relaxation solution time = 0.06 sec. (98.92 ticks)
+31         Nodes                                         Cuts/
+32    Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+33 
+34 *     0+    0                         7947.0000        0.0000           100.00%
+35 *     0+    0                          925.0000        0.0000           100.00%
+36 *     0+    0                          768.0000        0.0000           100.00%
+37       0     0      566.4167   353      768.0000      566.4167     2719   26.25%
+38 *     0+    0                          766.0000      566.4167            26.06%
+39       0     0      577.0000   387      766.0000     Cuts: 453     3327   24.67%
+40 *     0+    0                          651.0000      577.0000            11.37%
+41       0     0      581.0833   361      651.0000     Cuts: 384     3778   10.74%
+42       0     0      592.9111   293      651.0000     Cuts: 356     4484    8.92%
+43 *     0+    0                          646.0000      592.9111             8.22%
+44       0     0  -1.00000e+75     0      646.0000      592.9111     4484    8.22%
+45       0     0      604.6852   207      646.0000     Cuts: 279     5004    6.40%
+46       0     0      608.2222   170      646.0000     Cuts: 189     5264    5.85%
+47       0     0      637.3333    13      646.0000     Cuts: 161     5393    1.34%
+48       0     0        cutoff            646.0000                   5406    0.00%
+49 Elapsed time = 2.07 sec. (2723.02 ticks, tree = 0.01 MB, solutions = 1)
+50 
+51 Clique cuts applied:  447
+52 Cover cuts applied:  1269
+53 Mixed integer rounding cuts applied:  3
+54 Zero-half cuts applied:  56
+55 
+56 Root node processing (before b&amp;c):
+57   Real time             =    2.08 sec. (2724.47 ticks)
+58 Parallel b&amp;c, 16 threads:
+59   Real time             =    0.00 sec. (0.00 ticks)
+60   Sync time (average)   =    0.00 sec.
+61   Wait time (average)   =    0.00 sec.
+62                           ------------
+63 Total (root+branch&amp;cut) =    2.08 sec. (2724.47 ticks)</code></pre>
+</div>
+<div id="cbc" class="section level3">
+<h3><code>CBC</code></h3>
+<p>In the case of <code>CBC</code> solver, the log provides an even
+higher specificity level than its counterparts in <code>gurobi</code>
+and <code>CPLEX</code>. In this instance, the breakdown is as follows:
+lines 5 to 11 correspond to <strong>(i)</strong>, offering initial
+insights. Lines 12 to 66 delve into more intricate detailed aspects of
+presolve <strong>(ii)</strong>. Subsequently, lines 67 to 80 represent
+<strong>(iii)</strong>. Further along, lines 81 to 110 illustrate
+<strong>(iv)</strong>. Note that we have employed a stopping criterion
+set at 3600 seconds. This decision stems from the understanding that
+with this non-academic solver, an optimal solution might not be attained
+within a shorter timeframe (as it indeed was the case). This approach
+ensures that we are able to present the complete structure of the log
+output comprehensively. Thus, an optimal solution was not reached
+(<em>gap</em> of 0.04%). Instead, we found a solution with an objective
+value of 653, marking a distinction from the previous solvers’ outcomes,
+which converged at 646.</p>
+<pre><code>1   Welcome to the CBC MILP Solver 
+2   Version: 2.10.5 
+3   Build Date: Apr 21 2021 
+4
+5   command line - problem -threads 10 -log 1 -verbose 15 -ratio 0 -sec 10800 -timem elapsed 
+6   -heuristicsOnOff on -solve -quit (default strategy 1)
+7   verbose was changed from 0 to 15
+8   ratioGap was changed from 0 to 0
+9   seconds was changed from 1e+100 to 10800
+10   Option for timeMode changed from cpu to elapsed
+11  Option for heuristicsOnOff changed from off to on
+12  Continuous objective value is 563.542 - 8.95 seconds
+13  Cgl0004I processed model has 37313 rows, 42882 columns (7930 integer (7914 of which binary)) 
+14  and 136210 elements
+15  Cbc0038I Initial state - 372 integers unsatisfied sum - 123.042
+16  Cbc0038I Pass   1: (9.34 seconds) suminf.   79.66667 (242) obj. 604.667 iterations 720
+17  Cbc0038I Pass   2: (9.36 seconds) suminf.   78.16667 (239) obj. 606.167 iterations 3
+18  Cbc0038I Pass   3: (9.39 seconds) suminf.   71.16667 (218) obj. 620.167 iterations 21
+19  Cbc0038I Pass   4: (9.41 seconds) suminf.   63.83333 (196) obj. 634.833 iterations 22
+20  Cbc0038I Pass   5: (9.44 seconds) suminf.   56.16667 (173) obj. 650.167 iterations 23
+21  Cbc0038I Pass   6: (9.46 seconds) suminf.   46.50000 (144) obj. 669.5 iterations 29
+22  Cbc0038I Pass   7: (9.49 seconds) suminf.   38.16667 (119) obj. 686.167 iterations 25
+23  Cbc0038I Pass   8: (9.52 seconds) suminf.   33.83333 (106) obj. 694.833 iterations 13
+24  Cbc0038I Pass   9: (9.54 seconds) suminf.   25.50000 (81) obj. 711.5 iterations 25
+25  Cbc0038I Pass  10: (9.57 seconds) suminf.   18.16667 (59) obj. 726.167 iterations 22
+26  Cbc0038I Pass  11: (9.59 seconds) suminf.   13.16667 (44) obj. 736.167 iterations 15
+27  Cbc0038I Pass  12: (9.62 seconds) suminf.    7.50000 (27) obj. 747.5 iterations 17
+28  Cbc0038I Pass  13: (9.64 seconds) suminf.    1.16667 (7) obj. 761.167 iterations 20
+29  Cbc0038I Solution found of 767
+30  Cbc0038I Relaxing continuous gives 767
+31  Cbc0038I Cleaned solution of 767
+32  Cbc0038I Before mini branch and bound, 7554 integers at bound fixed and 31499 continuous
+33  Cbc0038I Full problem 37313 rows 42882 columns, reduced to 262 rows 253 columns
+34  Cbc0038I Mini branch and bound improved solution from 767 to 765 (9.83 seconds)
+35  Cbc0038I Round again with cutoff of 744.104
+36  Cbc0038I Pass  14: (9.91 seconds) suminf.   79.66667 (242) obj. 604.667 iterations 0
+37  Cbc0038I Pass  15: (9.94 seconds) suminf.   73.50000 (225) obj. 615.5 iterations 17
+38  Cbc0038I Pass  16: (9.96 seconds) suminf.   64.83333 (199) obj. 632.833 iterations 26
+39  Cbc0038I Pass  17: (9.99 seconds) suminf.   60.50000 (186) obj. 641.5 iterations 13
+40  Cbc0038I Pass  18: (10.01 seconds) suminf.   56.16667 (173) obj. 650.167 iterations 13
+41  Cbc0038I Pass  19: (10.04 seconds) suminf.   47.83333 (148) obj. 666.833 iterations 25
+42  Cbc0038I Pass  20: (10.07 seconds) suminf.   39.50000 (123) obj. 683.5 iterations 25
+43  Cbc0038I Pass  21: (10.09 seconds) suminf.   31.16667 (98) obj. 700.167 iterations 25
+44  Cbc0038I Pass  22: (10.12 seconds) suminf.   25.83333 (82) obj. 710.833 iterations 16
+45  Cbc0038I Pass  23: (10.14 seconds) suminf.   19.16667 (62) obj. 724.167 iterations 20
+46  Cbc0038I Pass  24: (10.17 seconds) suminf.    9.83333 (34) obj. 742.833 iterations 28
+47  Cbc0038I Pass  25: (10.21 seconds) suminf.   10.69574 (36) obj. 744.104 iterations 206
+48  Cbc0038I Pass  26: (10.24 seconds) suminf.   10.12908 (36) obj. 744.104 iterations 48
+49  Cbc0038I Pass  27: (10.28 seconds) suminf.    9.67908 (35) obj. 744.104 iterations 144
+50  Cbc0038I Pass  28: (10.31 seconds) suminf.   10.69574 (34) obj. 744.104 iterations 26
+51  Cbc0038I Pass  29: (10.34 seconds) suminf.   10.67908 (37) obj. 744.104 iterations 16
+52  Cbc0038I Pass  30: (10.36 seconds) suminf.   10.67908 (37) obj. 744.104 iterations 3
+53  Cbc0038I Pass  31: (10.62 seconds) suminf.   38.57092 (112) obj. 744.104 iterations 1444
+54  Cbc0038I Pass  32: (10.67 seconds) suminf.   37.19574 (109) obj. 744.104 iterations 231
+55  Cbc0038I Pass  33: (10.70 seconds) suminf.   36.59574 (107) obj. 744.104 iterations 159
+56  Cbc0038I Pass  34: (10.71 seconds) suminf.   36.59574 (107) obj. 744.104 iterations 0
+57  Cbc0038I Pass  35: (10.74 seconds) suminf.   36.52908 (107) obj. 744.104 iterations 29
+58  Cbc0038I Pass  36: (10.77 seconds) suminf.   36.26241 (106) obj. 744.104 iterations 82
+59  Cbc0038I Pass  37: (10.80 seconds) suminf.   36.19574 (106) obj. 744.104 iterations 115
+60  Cbc0038I Pass  38: (10.83 seconds) suminf.   35.92908 (105) obj. 744.104 iterations 91
+61  Cbc0038I Pass  39: (10.86 seconds) suminf.   35.52908 (105) obj. 744.104 iterations 58
+62  Cbc0038I Pass  40: (10.89 seconds) suminf.   35.26241 (103) obj. 744.104 iterations 48
+63  Cbc0038I Pass  41: (10.91 seconds) suminf.   35.26241 (103) obj. 744.104 iterations 0
+64  Cbc0038I Pass  42: (10.94 seconds) suminf.   34.59574 (102) obj. 744.104 iterations 65
+65  Cbc0038I Pass  43: (11.00 seconds) suminf.   33.39574 (99) obj. 744.104 iterations 253
+66  Cbc0038I Rounding solution of 764 is better than previous of 765
+67
+68  Cbc0038I Before mini branch and bound, 7332 integers at bound fixed and 30532 continuous
+69  Cbc0038I Full problem 37313 rows 42882 columns, reduced to 1758 rows 1877 columns
+70  Cbc0038I Mini branch and bound did not improve solution (15.54 seconds)
+71  Cbc0038I After 15.54 seconds - Feasibility pump exiting with objective of 742 - took 6.36 seconds
+72  Cbc0012I Integer solution of 742 found by feasibility pump after 0 iterations and 0 nodes
+73  (15.55 seconds)
+74  Cbc0027I Exiting on user event
+75  Cbc0005I Partial search - best objective 653 (best possible 629.9), took 3188627 iterations 
+76  and 1068 nodes (3615.33 seconds)
+77  Cbc0032I Strong branching done 16196 times (715305 iterations), fathomed 0 nodes and fixed 0 
+78  variables
+79  Cbc0035I Maximum depth 52, 0 variables fixed on reduced cost
+80  Cuts at root node changed objective from 565.042 to 629.9
+81  Probing was tried 1274 times and created 211829 cuts of which 4667 were active after adding 
+82  rounds of cuts (4.965 seconds)
+83  Gomory was tried 1274 times and created 9045 cuts of which 0 were active after adding rounds 
+84  of cuts (32.725 seconds)
+85  Knapsack was tried 1274 times and created 233 cuts of which 0 were active after adding rounds 
+86  of cuts (22.010 seconds)
+87  Clique was tried 10 times and created 0 cuts of which 0 were active after adding rounds of cuts 
+88  (0.012 seconds)
+89  MixedIntegerRounding2 was tried 1274 times and created 20769 cuts of which 0 were active after 
+90  adding rounds of cuts (12.944 seconds)
+91  FlowCover was tried 10 times and created 150 cuts of which 0 were active after adding rounds 
+92  of cuts (0.263 seconds)
+93  TwoMirCuts was tried 1274 times and created 50422 cuts of which 0 were active after adding 
+94  rounds of cuts (11.078 seconds)
+95  ZeroHalf was tried 1274 times and created 921 cuts of which 0 were active after adding rounds 
+96  of cuts (10.462 seconds)
+97  ImplicationCuts was tried 20 times and created 634 cuts of which 0 were active after adding 
+98  rounds of cuts (0.006 seconds)
+99
+100  Result - User ctrl-cuser ctrl-c
+101
+102 Objective value:                653.00000000
+103 Lower bound:                    629.900
+104 Gap:                            0.04
+105 Enumerated nodes:               1068
+106 Total iterations:               3188627
+107 Time (CPU seconds):             3620.45
+108 Time (Wallclock seconds):       3620.51
+109
+110 Total time (CPU seconds):       3620.46   (Wallclock seconds):       3620.52</code></pre>
+</div>
+<div id="symphony" class="section level3">
+<h3><code>Symphony</code></h3>
+<p>Contrary to the previous logs shown, <code>symphony</code> offers a
+minimalistic yet essential amount of information. As in
+<code>CBC</code>, we have set the stop criteria to 3600 seconds, for the
+same reasons. As noted, sections <strong>(i)</strong> and
+<strong>(ii)</strong> are omitted, while section <strong>(iv)</strong>
+only indicates the objective value of the solution achieved (lines 38 to
+44). In turn, the section <strong>(iii)</strong> is similar to the log
+from <code>gurobi</code> and <code>CPLEX</code> (lines 8 to 36). Note
+that the most recent solution uncovered has a target value of 646. While
+it is currently evaluating whether this constitutes the optimal solution
+(reflecting a <em>gap</em> of 2.49%), it is pertinent to highlight that
+we are confident in asserting its optimality based on the solutions
+identified by <code>gurobi</code> and <code>CPLEX</code>.</p>
+<pre><code>1  Starting Preprocessing...
+2  Preprocessing finished...
+3     coefficients modified: 268
+4       constraints removed: 48
+5       variables fixed: 290
+6       variables aggregated: 17
+7
+8  Solving...
+9
+10     Time       Done     Queued                  LB                  UB     Gap 
+11       48          1          1              629.90              652.00    3.39 
+12       54          8          8              629.90              652.00    3.39 
+13       60         17         17              629.90              652.00    3.39 
+14       66         26         26              629.90              652.00    3.39 
+15       72         36         36              629.90              651.00    3.24 
+16       78         47         47              629.90              649.00    2.94 
+17       84         61         61              629.90              648.00    2.79 
+18       90         76         76              629.90              648.00    2.79 
+19       96         90         90              629.90              648.00    2.79 
+20      102        106        106              629.90              648.00    2.79 
+21    ...
+22     3511       4343       4343              629.90              646.00    2.49 
+23     3517       4348       4348              629.90              646.00    2.49 
+24     3523       4352       4352              629.90              646.00    2.49 
+25     3529       4357       4357              629.90              646.00    2.49 
+26     3535       4362       4362              629.90              646.00    2.49 
+27     3541       4366       4366              629.90              646.00    2.49 
+28     3547       4369       4369              629.90              646.00    2.49 
+29     3553       4373       4373              629.90              646.00    2.49 
+30     3559       4378       4378              629.90              646.00    2.49 
+31     3566       4382       4382              629.90              646.00    2.49 
+32     3572       4386       4386              629.90              646.00    2.49 
+33     3578       4389       4389              629.90              646.00    2.49 
+34     3585       4394       4394              629.90              646.00    2.49 
+35     3592       4398       4398              629.90              646.00    2.49 
+36     3598       4402       4402              629.90              646.00    2.49 
+37 
+38  ****************************************************
+39  * Time Limit Reached                               *
+40  ****************************************************
+41
+42
+43  Solution Found: Node 217, Level 109
+44  Solution Cost: 646.000000000</code></pre>
+</div>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>We have conducted 48 tests, encompassing three distinct models
+(models <strong>(A)</strong>, <strong>(B)</strong>, and
+<strong>(C)</strong>) and spanning four recovery targets (10%, 20%, 30%,
+and 40%). These tests were carried out across all four available solvers
+within the <code>prioriactions</code> framework, comprising two academic
+solvers (<code>gurobi</code> and <code>CPLEX</code>) and two
+non-academic alternatives (<code>CBC</code> and
+<code>symphony</code>).</p>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABEwAAAGQCAMAAACDGwV7AAABVlBMVEUAAAAAADoAAGYAOmYAOpAAZpAAZrYAv8QZGWIZP4EZYp8aGhozMzM6AAA6ADo6AGY6OmY6OpA6ZrY6kJA6kNs/GRk/GT8/GWI/P4E/gb1NTU1NTW5NTY5NbqtNjshiGT9iP4FiYmJin9lmAABmADpmAGZmOgBmOjpmOpBmZgBmZjpmZmZmtv9uTU1uTW5uTY5ubo5ubqtuq+R8rgCBPxmBPz+BP2KBvZ+BvdmOTU2OTW6OTY6Obk2OyP+QOgCQOjqQOmaQZgCQkDqQkGaQtpCQ27aQ29uQ2/+fYhmf2dmrbk2rbm6rbo6ryKur5OSr5P+2ZgC2Zjq22/+2/7a2//+9gT+92dnHfP/Ijk3I///Zn2LZvYHZ2Z/Z2b3Z2dnbkDrb/7bb/9vb///kq27k///r6+v4dm3/tmb/yI7/25D/27b/29v/5Kv//7b//8j//9v//+T///9Bp9TxAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAgAElEQVR4nO2d+3/cxnXFKdWl+rDsumXbhLLch+w2jSU7ppK2sks5dZIqle2QaZSs5NRhI4pLsiUp4v//pRgAu4vHAJg7dy5wMTjnY1nk4mh2cDHz3TsD7MxWAkEQFEBbY1cAgqA4BJhAEBREgAkEQUEEmEAQFESACQRBQQSYQBAURHSYvAn1CuHjCNFjidyjg8kDJr+DetTZHcaunHoheiwBJnEJ3YEjRI8lwCQuoTtwhOixBJjEJXQHjhA9lgCTuITuwBGixxJgEpfQHThC9FgCTOISugNHiB5LgElcQnfgCNFjCTDx13//zb+OXYWGJtMdfvuXf5rq78euRlWTid7vvkmD98e/GbsWNQEm/vrm7747dhUamkx3+O1f/2f6v7/ShePJRO/Xf5RG7+faaAKYeOvbH/3L3yq7mhPqDhlMvv0RYOKjPCf+9ocTSuyENXWY/PY7v/m5sqs5ne5QZCbf0UXjqUTvG205SS7AxFu//u7vvvmTsStR11S6QzFnoqxTTCV6+tpdJsDEV9/+MO0MZuiqSlPpDsUwR1miPpXoacvoCgEmvsouqLpxzlS6Qw4TbfGbSvQwZ1LXxGHya3Ml1eWbU+kOOUy03VyfTPRwN6emacPk2382n6zaesN0ugOeM2EJz5lUNW2YKNV0uoNGIXosASZxCd2BI0SPJcAkLqE7cITosQSYxCV0B44QPZYAk7iE7sARosfStGAC9Qrh4wjRY4nco4PJAyblX04I/3A+3s7uMHx1JubdROj66X6SXD3avfuqeWyo2kzOC5jE5QVMON5NhI539zOgHL/XPDZUbSbnBUzi8gImHO86Qhc/+Lf95OqzF8nFxy/qxwarzeS8gElcXsCE411F6PrLX6RZycUnr5KrTw+SYr7kBOoRYBKXFzDheFcROt4zQ5yzuyuYlI8NV5vJeQGTuLyACcdbRChNSa4rmUnp2IC1mZwXMInLC5hwvEWEjneN9jBnQvQCJnF5VyG6eLC7u593i3fRHVy91VvD10/3cDeH4gVM4vIWITLZ+cVHB8nz/eaxIaszMS+eM2F5AZO4vEWIzswH6vP96y8PmseGrM7EvBgksryASVzeUojS7CT9aM1GO7i56SbAhOWdLEyWy6X7P9QXdylvOVHfy0Y6m+ykHL7FYjFEdSbmdYUJomf1ThUmyyWFJvriLuVdh+jq0V7x03repBS+xYLSH/SdppDXESaInt07UZgslySa6Iu7lHdzN2c99WqByWJB6g/6TlPI6wYTRK/FC5jE5V09dpWzxDzDef1V89YwuoPdC5iwvIBJXN7KY1f75u87B7VjCbpDmxcwYXknChPMmbR4MerneBE9lneqMEkAE6uXcD8C3aHhRfRY3snCJDkBTCxe9ycl0B2aXsJzJohe0wuYxOUFTDhewITlBUzi8lJgginEupcCE0Sv4Z00THA3p+FFd+B4KY/TI3oN74RhkgAmTS9gwvGSYOIaPnVnKeYFTOLykmCC7sCAiXNqou4sxbzThokrTfTFXcqLz1aOlwYTx/CpO0sx75Rh4p6a6Iu7lBcw4XhpSxAAJpOGSW35ieVylFUvNIsGE3QHFkzcwqfuLMW804JJ+ZcTwpom+uIu5UWizvESF0cCTCKCifM4R1/cpbyACcdLhYlT/NSdpZgXMInLC5hwvNRlGwGTym+ASVxeIkyQqAMm4bxTh4kbTfTFXcqLKUSOlwwTl/ipO0sx77Rh4pqa6Iu7lBcw4XipMHFKTdSdpZgXMInLS4UJEvXyL3SYOMRP3VmKeScPEyea6Iu7lBf3IzheMkxcUhN1ZynmnThMHFMTfXGX8gImHK8HTPoDqO4sxbyASVxeMkww6i+JDhOH1ETdWYp5pw8TF5roi7uUF/cjOF4fmPQGUN1ZinmnDhO31ERf3KW8gAnH6wGT/tRE3VmKeQGTuLx0mGAKcSMvmPQFUN1ZinkBk7i8nd3B9jXjxWLoLzYrlg9MelMTfY1EyhsBTBxooi/uUl48KcHxklFsBBqvNHmYOKUm6lqtmNcDJrgfsZZfZtITQHVnKeYFTOLy4kkJjtcLJn3jHHVnKeaNASb9NNEXdykvYMLxesKkO4LqzlLMO32YuKQm+uIu5fWBCW5uruQHk57URN1ZinkBk7i8eOyK4/WFSWcE1Z2lmBcwicsLmHC8njDpTk3UnaWYNwqY9NJEX9ylvF4wwZMShbxh0hVBdWcp5o0AJg6pib64S3nxDCfH6wuTztRE3VmKeQGTuLyACccLmLC8ccCkjyb64i7l9YMJnpTI5Q+TjgiqO0sxbwww6U9N9MVdyotnODleb5h0pSbqzlLMC5jE5QVMOF4GTNpDqO4sxbyRwKSHJvriLuX1hAkeu8rkD5OO1ETdWYp5o4BJb2qiL+5SXjwQzvFyYNIaQnVnKeYFTOLyAiYcLwMm7amJurMU8wImcXl9YYJnOI1YMGkLobqzFPPGApNumuiLu5QX3y7heDkwaU1N1J2lmDcOmPSlJvriLuUFTDheHkxaYqjuLMW8gElcXsCE42XBpC01UXeWYt5oYNJJE31xl/J6wwQPhCeACdMbCUx6UhN9cZfy4nuvHC8TJvYYqjtLMa9WmFx8/CL7+3h3d/fdF8WLgEmvFzDheHkwaUlN1J2lmFcpTM5WBHm+X3q1EyZdNNEXdymvP0zw7RI+TKwxVHeWYl6dMHl+5+s8M7n+8qD0ctf1BEwy4XuvHC8TJvbURN1Zinl1wmQ9zLl6lA5zsuTkTaOODYCWy8H2GtIswITjZcPEFkR1ZynmVQ6Ti48OStkJMpNe7ypEFw8yCKcwvvuqfsz6Fl3jHH2nKeTlwsSamqg7SzGvcphkWs+bdMOkgyb64i7lLUJ09emBAfH10/3k+L3asZa3AExCwMQSRHVnKeaNBiadqYm+uEt5ixCdGYI837/67EUpkoBJn5cNE1tqou4sxbzKYXKWJunXXzn1BsDEqBSiNDu5+ORVlqT0TzmdnKTjnIHmdfQKMGF5NcPE/Dne3b2zvqHTA5N2muiLu5R3E6Lrp3sZi3OYVI9Z3wIrcoTITJpBVHeWYl6tMLGq+3oCJkkpRFeP9lIkfwKYULx8mFhSE3VnKeYFTOLybu7mmIkmypxJx/0cfacp5A0Bk0YQ1Z2lmDcqmLTSRF/cpbxFiHKWZEMd17s5WN4nCEyaqYm6sxTzRgSTjtREX9ylvEWIzFeazIMm7s+ZJIBJIJjUo6juLMW8gElcXt7Cg3P/En0ImDRSE3VnKeYFTOLyYq0wjncVobP8q+qkvG6tehTVnaWYNy6YtNFEX9ylvIAJx7uacTLPJLyXUJ4fLgswGV7BYdKemuiLu5SXCZOZr8hRilAKFNK9sJJqUVR3lmJewCQuL9YK43hLEUpTEsrzwxXN9VHiyGDSQhN1rVbMC5hwvOsIXTy4c0B7frgsZCaDKzxMWlMTfXGX8nJhMu/lfdq+2VQ71guTShTVnaWYFzCJy4uFBznecoRo37muCjAZWiIwsdNEX9ylvIAJx7tawCEf39CeHy6rEkZ1ZynmjQsmbamJvrhLedkwmfVaYasIFd9V93vOxAgwGViAiYAXq5hyvEGegDUqh1HdWYp5AZO4vIAJxxsMJglgMqxkYGKlib64S3n5MJnzWmEBYbIJo7qzFPNGBpOW1ERf3KW8WBKZ4w0HkwQwGVSAiYAXMOF4Q8JkHUd1ZynmjQ8mNproi7uUFzDheAPCJAFMhpQITOypib64S3kDwGTGq5gCJiwvYBKXl98dABO7yDBZxVHdWYp5I4SJhSb64i7lBUw43pAwSQCTASUDE2tqoi/uUt4QMJnvkshhYbJg1mZyXsAkLm+A7gCYWEWGSQKYDCfARMALmHC8gWGy4NVmct4YYdKkib64S3mDwGS266uHhUkCmAwmIZjYUhN9cZfyhugOgIlNPjBZsGozOS9gEpe3szs4LuW5mOsapp2LmHrAJAFMhpIcTBo00Rd3KW+YzGSumzUAJixvhDCxpCb64i7lDdIdABOLvGCy4NRmcl7AJC4vYMLxhoZJApgMJMBEwBsIJjPdrCE8TBYKz1LMGydM6jTRF3cpb5juAJg05QWTBDAZRmIwaaYm+uIu5QVMOF4BmCz0naWYd1owcbzDt1yK3kDUrFAwmefOL+FhkgAmg0gyM6mlJvriLuUN1B0Ak4Z8YbJQd5ZiXjeYnL/1hPAOjpKDSWOcoy/uUl7AhOMVgEkCmNQEmEzFGwwms9xGSgQm9s3gHWozOW+sMKnSRF/cpbyhugNgUpcvTJLZw+T89tbW1v0kef14a2vbwOQ/Hu+kLx/dfGZeufksOX/7C/MXR4Iwqacm+uIu5QVMOF7AhOW1hy/LRM5v33/9eDsxf9Lfj954mf64Y35L0p/Pb28T3tMqwETAGw4mc9yTTgYmBJqoiwjJ2wKTt/Ok49QkH+n/UpgYvqR/slcu791PSUN4T6sAEwFvsO4AmNTkDZOTmcMkOcxGN8lpmo4kOUnSrMRkJEdbmXYCzKLIwqRCE31xl/ICJhyvEEzcaaIuIiRva/gu723dfFaCSQqW3+c8yQ4rh0kCmDRFhMkMN7iUgQlh1kRdREjejvClg5nTG09Ww5zk8v2fpoOf7JUEMNHqDdcdAJOqODBxpom6iJC89vBlMyPZ2GY9AWuGPtvm9k6amqRE0Q+TMk30xV3KC5hwvCHWqbNpJkvXtYTvdGtry+Qg61vDJkMx94qzV248UZ+ZJIBJQ1SYzG+DS6HMxD01URcRkjfK7+YYASYNEbsDYJK0HqO+A2AiLGmYlGiiL+5SXsCE45WDiSNN1EWE5I0WJglgUhdg0ucVg4lraqIuIiQvYFLXtL1BYTK7rbcBE5YXMKlr2t6Q3QEwaT1Gh4kbTdRFhOSNGSYbmuiLu5QXMOF45WDimJqoiwjJGy9MEsCkJjpMFtzqTMwrCRMnmqiLCMkLmNQ1be8mRBcfv0iS493d3XdfNI45vgVg0nbM4x0AE0nJw2RNE31xl/KuQ3SWQeT5vu2Y61sAJm3HfGDiQhN1ESF5I4ZJMmeYPL/zdZqZXH95YDnm/BarcY6+0xTySsLEKTVRFxGSFzCpa9re6jDn6lE6zMmSkzeNyF+2WMzkSyUrycLEgSb6GhTFGzdMVjTRF3cpbxUmFx8dlLITendAZtJyzOsdABM5icMkmT1MMq3nTXxgsuBVZ2JewITlBUzqmrY3LEwSwMR+zA8m/TRRFxGSFzCpa9reKkzO7r5Krr/yvjUMmLQca2wZ6fYOgImYhoDJ0tlLKVext/mcyZ2D5jHnt8jHOfpOU8jrCJPlkkKTEkx6aaIuIiRvH0w6onZ4n/CuFsnDJJkzTJrySdQBk+ax5ZJEk9I7zBsmXVEDTBR6AROOlwQTV6aUYdJHE3URIXnbwrdsqHTw8p5ZufHww2zTv/wXD1VgstpCo/NfeMBk6eyllKvXGx4mC42nKeT1gUkvV8rvEBlMqltSe8Hk9eP7Zkedwzdenr/9rPiFUNmVNjBJeVRQ5KgTTPTeAJi0HXN9C8CkeazSH3q5UoFJD03URaRTi0WVJt3DHDtxi/3+zDDn8P5q8z+61jC5/KBUROWXmgCTXi9gwvEy7+bYuVJ5h5hgsljUaOIzZ3L+TpaI/PJJBpN3fLISowHmTFZXffS4D+YVgMlC4WkKecNFry1f6UlN1EWkS1SYWBm8yUzSMU6AzMRZHr0BMGk5RmgyCk9TyCvy0FqVJ4uu+ZXWeRebRo8eGSY2mWmSlCGH20kxZ+IHlBpMLu9t9c3kAia9XsCE45V9AjaDxWLZUPmw1/MrY3lpcyYtWt/NMZ0/zN2cfApmQ6XVw+BXj3bvvrJWFjCxeSVgstB3mkJeaZgkm3GOfRxEocn40Vs43s0ZQNUJWJPhbGByVqwPdv10Pzl+b2X0gsnS2UspV6tXoDsAJs1jjNo0J02mCpNGzqoBJmly88bLyjAnX9on1dVnLzbfWPO6noCJ/RhgYvEOApPWKdiJwaR5n08FTNKU5PZ29WBBkItPXiVXn5pvl/it7nNyslwGX0JHs0Rg4rq5Ja1chd4hYNJxd5hGk5GjZ3k2WglMzLboladfC5iYr73mMDHyy0yWo8d9QK9EdwBMGsdYMAlEk7Fh0vSqgYl5+rX0ZZ9GZmLkdT0BE+sxwMTiHQQmXQ+uGa8rTcaNnm1xChUwOb+9tXXzWZIcbm4LXYSaMwFM7McAE4t3IJi0xzPzOtJk1OhZF/TUAJPL91OGnJpJk9c/rt0avn66x7ubk18ada1WzCsDEwJN9IWE4B0GJh2pSe51o8m4MLF5dcFko2w55Hx9ddZzJkmWmqhrtWJeke4AmNSPMWHSGs/C6zRxMmb07DsqaYDJepjTJ8Ck1wuYcLyrCF08yHYICfBJZvf2wcSJJiNGr2UXahUwcRVg0usVgok7TfSFhOAtImSm/C8+OmA/Mdnq7YWJy1BnTJjYvbOAyVJdqxXzyiTqM4PJmSHI8/0As/8t3tZ4lry9NBkvegvFMBFczyQTYGI5BphYvKUIpdkJ/4nJVrnslLjU+rxl6z6PGmBinqQvHjEJvdJaJsDEcowIE2ea6AsJwbuJkLmNyH9istXbFs+Ktyc3GS16pbrry0yMDkXWgM1FWiVCXwsneYXuR8wNJleP9oI8MdnqdYFJzzTsWNFbeMPk4cOH3QbliyNlAkyaxwATi3dzN8fsgig3Z9KamtS8nTQZKXqVmpNg8vBhH00AE1XeTphwhskuo/zJq4hezpIQT0y2e51g0plVj9P4qhR0a3wPGyodzNZDuvzgCzPBYWCS/n7zWXK4kxxttxRnE2Ai4JV67Mo5NdEXEoK3iNDxrtG+3HMmSVtAm952mowEkw6vD0zy3S3+594bL09vPjMwyTFy+cGvOu7ENDUkTKa0tCbLC5hwvAM9AZvJESbtjXeU6C18YJKrmZQY5SOby3v3k9efP0l/MY/Dmzu6Rz3zpzUNBxNSaqKuhZO8cjBxpIm+kBC8GmHSOnEyRvTqrYA/Z5LvbpF9oybbN8eskZaNeN4irQULmAh4xboDYBK4NtaAWr0tNBkFJp1en7s5RWaSwqTITIrRzeGHlCmTGkyy/UHvt1gLMWAypUW/AZOxvEPCxJqatHit7XeE6DUaAQ0mNuW7W/zq3rbZF7SYMzE/vfP7zympSXWvYfNFv8t7Is+ZpF7ApH6MDhM3mugLCcE7LEwsAW3z2mgyfPSaNebDpLib8/73S3dzbjwhbzpchomZgEl12v3dYcCk1yvXHQCT0LUhwMRGkxFg0uP1fwI2mzPhaFiYTGbRb54XMOF4B4ZJX+csqzlxMnj0euurBCbJab6fl9QwhzAFq66Fk7ySMHGiib6QELzDwqT3k76iBk2Gjl7/sEzJd3OyG0K5OpITwKTXK9gdAJPQtembg6ipRpPBYdLrVQITNwEmvV7AhOMdGCbN/tldbpUmA0fP4Vb2fGAykb2NmF5RmLjQRF9ICN7BYdJ9q7WhSiseNnouj/9rgYlZBrZ7jJPwridgwu4OgEnw2hBhUqHJoNFz+pazEpi8frzz+vH94p5OqwCTXi9gwvGqh0l5GnZYmLh4lcDEYCR/9K3rX/BgMo1dF5leWZg40ERfSAje4WHS+V0XmzY0GTJ6TivDaYLJ0bbccyaJe2qiroWTvKLdATAJXhsyTDYfiwNGz2UB7EQNTJLDjCRHcpkJYAKY9HpHgEnXV/pbVNBkSJi4ebXA5PXjneSwczXphA2TKewHzfUKw6SfJvpCQvAOD5POxYbalDfl4aLXuwNhIS0wcRLvegIm7LcATILXpmsZxFYtB91Au2+j9bUAE6uXUq4qL2DC8Y4Ak8QHJhlNhoOJq1cJTDaP03ctiQKY9HoBE453FJi0r/bepeH2b+m66DSY3Lp1i1CPw+w5EccF663rmbx+3EETLkycwq+uhZO80jDppYm+kBC8Y8Ak8YPJYAsbd15yEkxu3SLR5LBnqbSK7EsQdN0dZl5PwIT9FoBJ+Np4wmSo5QM7r7hb47vVUOlgOij5g380CzaaJOT8z/7h5rN8s4vk8EOz9KJHZgKYBPICJhzvODBp3SGvp9zuDf9IdWj3dl/xADAxz6reWMPk9v1k9fTqYbaMI2eYk3Q9asKGiUvs1bVwklccJn000RcSgncUmLTv3dtXrjtNvOvbc70pw5wmR4zMAtL5UtJJgQ7zilksyQxzsgXrXSpdvZtzmi8ofSSwcfnaC5iw3wIwCV+bUkyp5Uo/PNV3uflzJmariypMzJ/0leSXT7xh4iLApNe7CVG2S27wPekAE4Ha+MNE+q4C7Wr73M3pzExePxaECXMrWXNzPnKtr+fZ7rsvkuun+4F3y+0d56gDBMU7FkzWMVU2did+dHg9Z5LPmRh6HOX7g67nTLYTzzkTJ7Gvp0vg1bVwkncVoud3vk4zk6vPXuQZSuUY6y0AE4HaMGDiNnEyzHS7F0wu7239YTqoOdra+osPcnRs7uYUu184CDAR8FaHORefvEquPj0wrxuFSH0WixClKNVoMFn1Wr9G3d+sPWFC8Br5PgHrCIwuASYC3ipMzu6uYFI9xniLvnGOvpAQvGPBJOHAxGWo41Uu+XlnH5i8frzV9/1eF40CE6mMUIu3LTOpHuO8BWAiUJtVUD3L7W3XPuXSF5xQ8t0cN/Gv58xgIjBnApiI1IYHk16aeMGEWAfApMNLKVeNtwqT66d7ge/m9I5z9IWE4O2EiehsDXcmKvyNSo/JsdnBRGiuSotX+jmThPaANaVcBd4RM5MFs9zuaVh6uT67JM0MJg6piboWTvIO0B0AE4nacGHSTRMPmHjUATBp91LK1eIdBCbuX0qnlKvAOyZMFuxyO2hCLtdrm/r5wUTkLpoa7xDdATCRqA0fJh2Nm1quI0tmDpP+1ERdCyd5AROOd1SYLPjlttKEWK4rSwATdy+lXCXeYWDivJAfqdzxvWPCJAkAk9aJEypM/OoAmHR4KeUq8Q7SHQATEZgsApTbQhNauc6JCWAi8LCgHi9gwvGOCpMkBExaGjipXHeWzB0mvamJuhZO8g4EE9edVGjlju4dGSaLIOXaaEKDiW8dAJMuL6VcHd5hugNgIlKbMDCx0YRSLiExIcLEZUfIqpy/TzwaTMJ/jUGPFzDheOOAiWXihFAuqcOTYLJYkGmiHSZ9qYm6Fk7yDgUTx91nieWO7R0bJqTO1lFugyYUmIRvfIuGSgdPt8xSSIf3k/N3fv/5T7a2dtIXdpLLD77Il0b6J7MydLFe0vk7/25+y7y1ZecBEwHvQN0BMJGoDe2ju7PcGk0odRgWJmbF16Pt5HQn/c/swHd+O1ut8fLeGy9Pbz47v10s4Zj9VfyWeWtvMR5MOmmiroWTvIAJxzv2BCyJJt3lVlv5MJPA3cMc++mZxV/NX997+csnZk168yd9zWyktVlnulhjevWb8daKGQsmPamJuhZO8g4Gk7Y2ry8kBG9EMKnSxL0OUo0vaUu8zm+b8czrz3/2vZdlmLy/3uiiWFV6g5bMWysFMBHwDtUdAJPwtQkLkwpNXOvAe3DO926OGcgcfbiT1GDSlplk3poAEwEvYMLxapgz8fxejEWlaVjHOjC/H+TznIkBiflz/taTCkzubWezJAU+ijmT4jfjrWlEmHTRRF0LJ3kBE453ZJhkH93OOOkvd0MTtzpwl0HwemjtMLubk7z+8bNqZvL91UYX2cZc+d2c1X5/P27cMB4NJt2piboWTvIOB5OWFq8vJATv2DDJvK40cSl3RRNHmBC8tjpwnoA9//PKr8W8rJPXCDAR8A7WHQATudq44cSp3IImTl720pEMmNT3GO+CiW0/8jFhEnS5TE1ewITjVQITN5q4lZu3dRcvc7uNZI7fzTECTALAxN7c9YWE4NUCEyecOJa7zNVv5G0EZgSY9Hkp5Y7vHa47ACaitemniWu5jjRhbVGaa64wCbmQtyYvYMLxKoJJP06cy3Wiyea9AJNuNbzzhEngTZri28JcFUz6aEKFSTdPNu8EmHQLMGkc41fH3tL1hYTg1QWTHpx4wKSdKQvAxFWASeMYYGLxaoNJJ03cy10TpJUp5XcBTLplgUm4/YpUeQeFia2d6wsJwasOJl04IZRba+5NppTfAjDpVtMLmPCrA5jI1iZXK03YddjwZLHw+YZxwwuY9Hsp5Y7tBUw4Xo0wacVJqDpkLCmlKbHB5OrR7t1X2U/Hu7u7774oXg4Kk1A7KeryDgsTSxvXFxKCVydMWmgSrA5Z4b1TtA7lqoTJ9dP95Pi97Mfn+6XXQ15PwIRfHcBEtDYl2XASDialn4lMmQBMrj57kVx8bPKR6y8PSq8DJr1ewITjVQsTG01C1aFesPG6ImUCMLn45FVy9anBSDre2d3NkpM3jQI+n7RcBixMjwaGSZMm6gBB8eqFiQUnwcpt9/YyZQIwObu7gsnFRwel7CRsZhJmw3hl3mG7A2AiWZua6jQJBZNeb/vQp/arSphsMpNM63mToNcTMOFXJ16YZKPszX2ARAFM6jgJU677XEyTKXW4qITJZs4kE2Di7h0aJnLTgmN41xE6M7cQS/cBEhUwqdJkpI+DZV2bQyphcv10r7iKZsBz/ZXAreH2cY66Fk7yDpyoRwqT53e+Tj/Lqp9pGmBSwUkYmHjUIdNkYFLkl+ZCHu/u3lmPd8JeT8CEX51IYZIPczaj7dCz/wwtgn5bm1VWAZPNCzph0iLApNc7OEykbliO4q3CZHMfoHpsqNq0aJWcBCiX+WTtJOZM2hQaJg53uzzKHdU79P2ImGFSvQ+gBiYrmoSAiXcdck3hbk6bAl9PwIRfnZhhonHOJFeGE365oReRAEzcvJRyx/QODxPL85MByh3HW4XJ5j5A9dhQtelQNnPCLTf4t5EBEzcvpdwxvYM/dhUxTNQ9Z1IWZVdie7nhNyuZN0M4SAkAAAyfSURBVExsNBm/nQAmY3lVPwFbE4kmVpjw6wCYbASY8Ksj9I2RcbxTgklywtvkXGC3aMDE0Uspd0Tv8N0BMJGqTa/XnSbNckOsLQuYlGQd5+hoJ75ewITjnRhMOJucB1j1vuGdNUysqYmWduLnBUw43snBxJUmjXJDbKHR8AImrl5KueN5x4CJxBfjx/FODyaem5x3/RPApFvtMGnSRFE78fCO0B0AE6HaOHpdaNKASeA65Jo3TGypiaZ2QvfWrqfUetxlASZCtXH2kjc5D7PtaMMLmDh7KeWO5q1dT7H1uEuqtmR9ISF4JwqTfppUyw20IXrDC5g4eynljuatXk+59bjLAkxkakPxkjY5p4CHUAfApEETde2E5K1eT7n1uMsKucDGuJouTHpoUgOPUB1mDhNLaqKvnVC81esptx53WQIrk47knTBM3Dc5J86vELyAibuXUu5YXsv1lFlCtyzARKQ2VG8HTSrzK2J1AEzqNFHZTpy9gAnHO22YuG1yTr6N7O6dO0yaqYnSduLorV5PwfW4ywq+ZvpY3qnDpJUmJyWHXB0Ak5hh0r4eN2FzaofqACYStfHy9mxy7vG0rLsXMKn3Kr3txMXr2B1IW90DJo1j6mq+kZUmG5hI1mH2MGmkJorbiYPXrTu4bnLvWp1S+9UXEoI3Bph0bnLu8q1AwKRbgEn1WGiYJICJQG28vU2anKwOiNYBMJkxTFyBApjUj6mreU0tm5x7rn3i6gVM6h1Kezvp9pLmTFyB4gKToJtWjuWNBiZ1mpwUL8rWATCppybq20mn17U7rBHiAhSH6gAm4WvD8zY3OXdc4xEw6RZg0jhW/md9QAFM6sfU1dyiRX1a3Hu9WFcvYFIf50yhnbR7vbtDF0+cYLJw9lLKHdYbFUzKODlJnBMTwKRH3V7ApFAbUFyqA5gErw3fu6bJiTtLAJMeASaNYy1vYR3xACb1Y+pq3qb1JufuO3YBJt3qg0m570ymnVi9IbpDAyhuMFl/BjpLnTc+mOQ0Ye/+5+YFTJJaajKddmLzhuoOFaA4fga6e93qMLw3QpjkOAFMGgJMer0hu8MaKIBJ/Zi6mneJSBPApFuASeOY41u4PydbNFd9ISF4ARNWHaYFE6GlP9PeIlSyvBbVFVgluoMjUACTwLUJ5QVMbBK7nuWeMvq1J3nrzUSoO7g8JwuYBK5NMC/mTCwCTOpqfOgIdoc+oKxuQlLLVeTtjN5YuWcALYbZQAAwMaLeB9XhXay1eU34s7UTKJHDZPDaTM4LmGSaFkwWdW0ODdAdWoECmIStzeS8gEmmicCkiZCB5kzqsvIEMAlbm8l5AZNMpY6h7xolNoqUjpR/HbA7NICSVUVl+Fy9gAnLC5jkUguTVorYyx22O9RGPIBJ0NpMzguY5NIHk16KWMsdvjuUgJLWk7CyrJ5QrwWYsLyASS5FMGkf0jiUO053KHiyWDgvKxu+DiG8gAnLC5jk2vSB8a4RkSLWcsd7UmK5kej7SAowYXkBk0KjwqROEZnrKd8dNjwJW+5QXsCE5QVMCo0Dk5ZcZPowcUKKuu4AmLC8gEmhddMXinvzjm7HkGaqMNlsO+qEFHXdATBheQGTlWRhUn3KrG9iZLIwWVTZ0ZOmqOsOgAnLC5isJAqTRV2Bym14x4aJ7dRakaKuOwAmLC9gspIUTEgUIZRr9yqASdspNpHiP0rsFmAyjhcwWWnVxEXu0LBu91K843YHh9MsIyUMpJoCTMbxAiZrBYKJHSAD9QYdMJFS8PrWvYAJywuYrMWESU/Lp7AEMOEhBTAZxwuYrFWMc6jlurb18a/nyHMmreX230YmYgUwGccLmGxEgwn1A3P86zlEd6CwpFpu523kcoT7sQKYjOMFTDZygwk966bUgeudendoQ4o10G1YAUzG8QImG+XNt80btNWKeSPpDnWk9D2cTxgDddUhkuiN5QVMSjLttdEMuxrptK7n5LoD8as+mahYAUzCeQGTktLmuml9Lk1yWtdzot2BDpSs3LYxUFXVFyOM3pBewKQks7wP6XNtWtdzut2hnqL0QKVWbgdWalc4zugN5gVMNqKPuad1PSfcHTb8cIFKa7k2rJQvdaTR09D4hKUHJrRRtkwdAnlj7Q4NbHRBxaFcwETAO2+Y1BFSjHPY5Y7nnV13sEHFuVzAJKh3pjBpSUSWGU0Y5Y7unW138LnzgzmTsN7ZwaR7OJM2Qn3XiOKdfXcgQmWBuznhvPOBidOkCGAStjrjeV2hUinXNXoPHz6k1WYe3hnAhDK3uqQssjG16zkrmKzUA5XqK47Re/iQQhNtEZHzxgwTnzs0gEnQ6ujx2qFS44tb9B4+JNFEa0TCe+OESZ0i7vEBTIJWR5+3DpUKTUgwqcqvNgN5BxqWRQaTllwEMGkc01f1Yb2hYdKOl/EjMtSwTCdMrh7t3n1V+ynpnAPrHtIQYCIF8YHKrV1P1/BJVUd5uUtzudth0hY9W+ck0KVdMmcpNyzrbnxDqh0m10/3k+P3qj8Z2a6n08TI+BAfqtzq9ewPn3B1JlauY/Rupf/ollvZJLzQztKhfC+FanyDqh0mV5+9SC4+flH5yaiRaW4ociuMinIDlTZYuZvQvdkSSGv4pKoztXKJ0QtejWptplZuW+MbVO0wufjkVXL16UHlpzeN1tvVb2AiEp+whcqXu47LyZstgbSGT6o6UyuXGL3g1ajWRqhgoWLbG9+gaofJ2d3VVdz8ZCR/d27y5VavJ8JHK9ctekVfEq9NqHKzbj9EfVXCxJaZGGHQ31tu22dr7djUT1OoXMfokVii4CyHqq9KmPTPmUzttsFId3MQPlq5rtGj9E0NZzlQfVXC5Prp3vpuzp59Ql3D7XuN3vr9CISP4kX0WF6VMClu8JtPhdYHJRTGUoPX9TkThVVX4EX0WF6dMGkRrmevF0/AcryIHssLmMTlRXfgeBE9lhcwicuL7sDxInosL2ASlxfdgeNF9FhewCQuL7oDx4vosbyASVxedAeOF9FjeQGTuLzoDhwvosfyAiZxedEdOF5Ej+UFTOLyojtwvIgeyzstmEC9Qvg4QvRYIvfoYKLDpCKpms+kXGXVmVi5umoTX7lkASZjlqusOhMrV1dt4iuXLMBkzHKVVWdi5eqqTXzlksWECQRBUC7ABIKgIAJMIAgKIsAEgqAgAkwgCAoiBkyyZX4ri+qF0MWD3d19gXLPdnfflahvvuecR7kIXy6/8CF6uTwbn4z8YXJm4lPdvDGAzK4GFx8dBC/XNL60wODlpjpO2x+9XISvkFf4EL1Cfo1PSN4weX7na7PUdGUjggA6M0F5vh+8XKO0QIFyL37wb/v0OCB8q1J9woforUr1anxSYg5zqlskBVJaoEi5Kb3Dl3v95S/SDwaPchE+I9/wIXpG3o1PRkyYVDdvDCOzU4pAuRcP7hwIlHu8Z7JMj3IRPiPf8CF6Rt6NT0b6MpOrR3v1TSFDlSzwoZMWeK0qM5lJ+BC9hNP4ZMSESfjh2sWD/aS+KWQoCQyHj3eN9jzKRfgSRvgQvYTT+GTEhEl188YAyi9n+HKLVDB4uUl+d86jXIQvl1/4EL1cno1PRtqeM8lhux/+1nlacDpsVXSrH+HLpeg5k9lET0h4AhaCoCACTCAICiLABIKgIAJMIAgKIsAEgqAgAkwgCAoiwCR6/e9/uRpeP76fnG5t7aQ/nm6n/7t8/4ls1aCoBJjErvO3eoiwMRxtJ5f37pvfLz94Zl44feOlcO2giASYxC53mJhE5PztZyY/OdrJXjE/QpCjAJPIdX7bjFvM/81fb3+xdfPZ5b2tGz99+1mKiq30t9xgdJTmITlMisQEqQlEEWASu7JRy700wzgy4NhOE5B7O+mfmyk0tjOArDKT1493kmKYUyQmDmkNBK0FmMQuw4P/e5n/cH47hcrpzWcZWbK/izkSo4w42QRsmpgcbt14sn4NglwEmMSunBUpI1I8ZD+b0YwZzhxtZdqpwsToaCc9nI1wsmwFgpwEmMSufJiT5hkmM6nApJgPacDk8nsvV6MfwARyF2ASuwwUsizjtMhMsuFN+r/TG0/WBqM1TA7vr6dSMMyB3AWYxC7DA8ON89sFTDYTsCli0iMbiORZyPk72U2dDECYgIXcBZhEr8Ot7fTP1o2freZaza3hn9zMbw2b7MQYjPL7wPmzJUf5BOwRbg1DzgJM5inbAyTNp+fx0BpEEGAyO5kxT/aMSUNH9RfxzBpEEGAyP5l7wjaWNBIRfNEPoggwgSAoiAATCIKCCDCBICiIABMIgoIIMIEgKIgAEwiCgggwgSAoiP4fZo8N/FcIVzIAAAAASUVORK5CYII=" style="width:100.0%" /> <img src="data:image/png;base64,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" style="width:100.0%" /></p>
+<div id="academic-solvers-gurobi-vs-cplex" class="section level3">
+<h3>Academic solvers: <code>gurobi</code> vs <code>CPLEX</code></h3>
+<p>Upon comparing the two academic solvers, a similarity in behaviour
+becomes evident. In the context of <code>gurobi</code>, optimal
+solutions were successfully achieved across all scenarios, as evidenced
+by <strong>gaps</strong> amounting to zero. Similarly, when employing
+<code>CPLEX</code>, we observed zero <em>gaps</em> across all scenarios,
+with the exceptions occurring in model <strong>(C)</strong> targeting
+10%, where a gap of 0.73% emerged, and in model <strong>(C)</strong>
+targeting 30%, which exhibited a <em>gap</em> of 0.24% (see upper right
+box in previous Figure). Nonetheless, a consistent disparity becomes
+apparent in terms of processing times. <code>gurobi</code> consistently
+exhibited a lead in verifying optimal solutions across most scenarios,
+with only slight variations in model <strong>(A)</strong> (distanced by
+seconds). Assuming that <code>CPLEX</code> achieved optimal solutions in
+all instances, verification required an average of 3510.847 seconds. In
+contrast, <code>gurobi</code> outperformed with an average of 1365.47
+seconds, representing approximately 39% of the time taken by
+<code>CPLEX</code> (see bottom boxes in the previous Figure).</p>
+</div>
+<div id="non-academic-solvers-cbc-vs-symphony" class="section level3">
+<h3>Non-academic solvers: <code>CBC</code> vs <code>symphony</code></h3>
+<p>In this context, it is a more varied panorama, with <code>CBC</code>
+notably standing out. In 8 out of the 12 comparative analyses against
+<code>symphony</code>, <code>CBC</code> demonstrated superior solution
+qualities, as indicated by the upper boxes in Figure above. Furthermore,
+the average <em>gaps</em> achieved by <code>CBC</code> stand at 6.35%,
+while its counterpart averages 9.06%. Turning to run times,
+<code>CBC</code> exhibited the capability to verify optimal solutions
+ahead of <code>symphony</code> in model <strong>(A)</strong>,
+particularly with target restrictions of 30% and 40%. However, it is
+noteworthy that both solvers encountered challenges in validating the
+optimality of the obtained solutions in the remaining models (see bottom
+boxes in Figure above).</p>
+</div>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<p>The benchmark findings underscore the considerable variability in the
+time required to resolve multi-action management planning challenges.
+This temporal difference is contingent upon diverse factors,
+encompassing the problem’s scale, intricacy, and the solver engaged in
+formulating the prioritization. Notably, specific solvers, such as the
+<code>symphony</code> solver, may demand several hours to address a
+predicament that could be resolved within minutes by other solvers like
+<code>CPLEX</code> or <code>gurobi.</code> In terms of recommendations,
+we advise prioritizing the utilization of <code>gurobi</code> and
+<code>CPLEX</code> solvers whenever feasible, as they frequently exhibit
+superior performance with respect to the non-academic solvers. While
+academics can avail special licenses for these solvers at no cost, it is
+crucial to recognize that conservation planners within governmental or
+non-governmental entities might not have access to these resources. In
+scenarios where access to the aforementioned solvers is limited, we
+propose the adoption of the <code>CBC</code> solver, which generally
+demonstrates better efficacy compared to <code>symphony.</code> In any
+case, due to the complexity of exploring in detail all the possible
+instances (number of units, species, threats and their respective
+combinations), we recommend being cautious with these results.
+Considering the intrinsic combinatorial nature of these models, even
+solvers as robust as <code>gurobi</code> may encounter difficulties when
+tackling exhaustive analyses.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

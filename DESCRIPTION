@@ -1,6 +1,6 @@
 Package: prioriactions
 Type: Package
-Version: 0.4.2
+Version: 0.5.0
 Title: Multi-Action Conservation Planning
 Description: This uses a mixed integer mathematical programming (MIP)
         approach for building and solving multi-action planning problems, 
@@ -8,12 +8,15 @@ Description: This uses a mixed integer mathematical programming (MIP)
         abate threats, in an efficient way while accounting for spatial aspects. 
         Thus, optimizing the connectivity and conservation effectiveness of 
         the prioritized units and of the deployed actions. The package is capable of 
-        handling different commercial (gurobi, CPLEX) and non-commercial (symphony) MIP solvers. 
+        handling different commercial (gurobi, CPLEX) and non-commercial (symphony, CBC) MIP solvers. 
         Gurobi optimization solver can be installed using comprehensive instructions in 
-        the gurobi installation vignette of the prioritizr package (available in 
-        <https://prioritizr.net/articles/gurobi_installation_guide.html>). Instead, CPLEX
+        the 'gurobi' installation vignette of the prioritizr package (available in 
+        <https://prioritizr.net/articles/gurobi_installation_guide.html>). Instead, 'CPLEX'
         optimization solver can be obtain from IBM CPLEX web page (available here 
-        <https://www.ibm.com/es-es/products/ilog-cplex-optimization-studio>). Methods used in the 
+        <https://www.ibm.com/es-es/products/ilog-cplex-optimization-studio>). Additionally, 
+        the 'rcbc' R package (available at
+    <https://github.com/dirkschumacher/rcbc>) can be used to obtain solutions
+    using the CBC optimization software (<https://github.com/coin-or/Cbc>). Methods used in the 
         package refers to Salgado-Rojas et al. (2020) <doi:10.1016/j.ecolmodel.2019.108901>,
         Beyer et al. (2016) <doi:10.1016/j.ecolmodel.2016.02.005>, Cattarino et al. (2015)
         <doi:10.1371/journal.pone.0128027> and Watts et al. (2009) <doi:10.1016/j.envsoft.2009.06.005>. 
@@ -31,10 +34,10 @@ Authors@R: c(person(c('Jose'), 'Salgado-Rojas',
 Depends: R (>= 3.5.0)
 Imports: assertthat (>= 0.2.0), Matrix, proto, magrittr, tidyr, dplyr,
         Rcpp, rlang
-Suggests: knitr, gurobi (>= 9.0), Rcplex, roxygen2, Rsymphony (>=
+Suggests: knitr, gurobi (>= 9.0), Rcplex, roxygen2, rcbc, Rsymphony (>=
         0.1-31), rmarkdown, testthat (>= 3.0.0), raster, tmap, sp,
         viridis, markdown, data.table, purrr, readr, slam, tibble,
-        methods
+        methods, reshape2
 LinkingTo: Rcpp, RcppArmadillo (>= 0.10.1.0.0), BH
 Encoding: UTF-8
 LazyData: true
@@ -55,7 +58,7 @@ Collate: 'RcppExports.R' 'internal.R' 'data-class.R' 'writeOutputs.R'
         'solution-class.R' 'solve.R' 'utils-pipe.R' 'zzz.R'
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2023-03-22 17:26:00 UTC; josesalgr
+Packaged: 2023-08-13 10:41:29 UTC; josesalgr
 Author: Jose Salgado-Rojas [aut, cre],
   Irlanda Ceballos-Fuentealba [aut],
   Virgilio Hermoso [aut],
@@ -63,4 +66,4 @@ Author: Jose Salgado-Rojas [aut, cre],
   Jordi Garcia-Gonzalo [aut]
 Maintainer: Jose Salgado-Rojas <jose.salgroj@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-03-22 23:20:02 UTC
+Date/Publication: 2023-08-13 12:40:02 UTC
